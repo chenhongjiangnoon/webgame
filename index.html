@@ -1,0 +1,223 @@
+<!doctype html>  <!-- 声明文档类型-->
+<html>
+<head>
+    <!--声明当前页面的编码集：charset=gbk,gb2312(中文编码),utf-8国际编码-->
+    <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+    <title>WEB打字游戏</title> 
+    <meta name="Keyword" content="关键词,关键词">
+    <meta name="description" content="描述">
+    <!--样式-->
+    <style type='text/css'>
+    *{margin:0; padding:0;}
+    ul{list-style:none;}
+    a{text-decoration:none;}
+    .fl{float:left;}
+    .fr{float:right;}
+    .clearfix:after{content:""; display:block; clear:both;}
+	#box{
+		width:100%;
+		height:100vh;
+		background: url("img/bg11.jpg") no-repeat;
+		background-size: 100% 100%;
+		position:relative;
+		overflow:hidden;
+	}
+	.score{
+		width: 150px;
+		height: 190px;
+		background: url("img/fs.png") no-repeat;
+		background-size:150px 190px;
+		position:absolute;right: 10px;bottom:20px;
+		font-size: 40px;
+		text-align: center;
+		line-height: 140px;
+		color:#ff9800;
+	}
+	.startOrstop{
+		width: 100%;
+		height: 50px;
+		/*background: red;*/
+		position:absolute;bottom:20px;
+	}
+	.btn{
+		width: 130px;
+		height: 50px;
+		background: url("img/stop.png") no-repeat;
+		background-size: 130px 50px;
+		float:left;
+		text-align: center;
+		line-height: 50px;
+		cursor: pointer;                  /*变成小手*/
+		user-select:none;                  /*按钮上的字不能选中*/
+		color: #9f2fb3;
+	}
+	.start{
+		margin:0 20px;
+	}
+	.reload{
+		width: 500px;
+		height: 274px;
+		background:url("img/sp1.png") no-repeat;
+		background-size: 500px 274px;
+		margin:0 auto;
+		position:relative;top:-350px;
+	}
+	#game img{
+		position: relative;
+	}
+    </style>
+</head> 
+<body>
+	<div id="box">
+		<div id="game"></div>
+		<div class="score">0</div>
+		<div class="reload"></div>
+		<div class="startOrstop">
+			<div class="btn stop">暂停游戏</div>
+			<div class="btn start">开始游戏</div>
+			<div class="btn quick">增加难度</div>
+
+		</div>
+		<audio id="ok" src="audio/ok.wav"></audio>
+		<audio id="error" src="audio/error.wav"></audio>
+		<audio id="gameOver" src="audio/gameOver.mp3"></audio>
+	</div>	
+    <script type="text/javascript" src="js/jquery.js"></script>	
+	<script type="text/javascript">
+		// $(function(){alert("陌生")});             引进来的jQuery.js生效
+		var chars=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];                                //定义一个数组
+
+		var score=0;                                       //定义分数
+		var flag=true;                                     //定义默认状态
+
+		var ok=document.getElementById("ok");             //获取音频by  id
+		var error=document.getElementById("error");
+		var gameOver=document.getElementById("gameOver");
+			// alert(ok);   弹出object htmlaudio element 证明获取到音频标签
+		
+			var speed=1;
+		//点击开始	
+		var start=$(".start");
+		var f=true;
+		$(".start").click(function(){
+			flag=true;
+			// alert("mpmo");                 //帮顶了一个点击事件
+			if(f){
+				 play(speed);
+				 f=false;
+			}
+		})
+		//点击暂停
+		$(".stop").click(function(){
+			if(flag){
+				flag=false;
+			}else{
+				flag=true;
+			}
+			// alert("mpmo");                 //帮顶了一个点击事件
+			// 
+		})
+
+		//重新开始
+		$(".reload").click(function(){
+			$(this).animate({top:"-350px"});
+			$("#game").children().remove();
+			score=0;
+			$(".score").html(score);
+			flag=true;
+			f =true;
+			speed=1;
+			play(speed);
+		})
+
+
+		$(".quick").click(function(){
+			speed++;
+			play(speed);
+		})
+		// createImg();
+		function createImg(){
+			if(flag){
+				//随机
+				// var num=randomScope(0,10);
+				var random =randomScope(0,25);
+				var img=chars[random];
+				var Dwidth=$(document).width();  //获取浏览器的宽度
+
+				var left=randomScope(Dwidth-100,100);//利用宽度随机生成一个范围
+				$("#game").append("<img src='img/"+img+".png' width='50' height='50' style='left:+"+left+"px; top:10px;' />")
+			}
+
+		}
+		// for(var i=0;i<10;i++){
+		// 	console.log(randomScope(0,10));
+		// }          调用方法 随机打印1到10
+		
+
+		//往下掉落方法
+		function downImg(){
+			if(flag){
+				var imgs= $("#game").children();//拿到所有子元素 生成的字母
+				for(var i=0; i<imgs.length;i++){
+					var img =imgs[i]; //当前字母
+					var Top=parseInt(img.style.top);//当前字母的top值
+					var Height = $("#box").height()-200;
+						if(Top<Height){
+						img.style.top=(Top+2)+"px";
+						//每秒钟掉落2个像素
+					}else{
+						img.remove();
+						score-=10;
+						
+					$(".score").html(score);
+					// error.play();  错误的声音
+					if (score==-100){
+							flag=false;
+							$(".reload").animate({"top":"-50px"});
+							gameOver.play();  游戏结束的声音
+							window.clearInterval(createImgInterval);
+							window.clearInterval(downImgInterval);
+							return;
+					   }
+					}
+
+				}
+			}
+		}
+
+
+		$(window).keyup(function(e){
+			var eve=window.event || e;//获取
+			var imgs= $("#game").children();//h获取所有生成的字母
+			var code= eve.keyCode;        //h获取用户按下的键盘值
+
+			if(flag){
+				for(var i=0;i<imgs.length;i++){
+					var img =imgs[i];
+					var imgSrc = img.src.split("/");
+					var name = imgSrc[imgSrc.length-1].split(".")[0];
+					if(name==chars[code-65]){
+						img.remove();
+						score+=10;
+						$(".score").html(score);
+						ok.play();
+						return;
+
+					}
+				}
+			}
+		})
+		// play();
+		//创建一个定时器
+		function play(speed){
+			var createImgInterval = window.setInterval(createImg,800-speed*50);
+			var downImgInterval = window.setInterval(downImg,10-speed/2);
+		}
+		//定义一个随机方法
+		function randomScope(minScope,maxScope){
+			return Math.floor(Math.random()*(maxScope-minScope+1)+minScope);
+		}
+
+	</script>
+</body>	
+</html>
